@@ -18,7 +18,7 @@ jobs:
           username: ${{ secrets.HOST_USER_NAME }}
           key: ${{ secrets.HOST_SSH_PRIVATE_KEY }}
           port: 22
-          source: "docker-compose.yml,html"
+          source: "docker-compose.yml"
           target: "/home/ubuntu/nginx-deploy"
 
       - name: Deploy with Docker Compose
