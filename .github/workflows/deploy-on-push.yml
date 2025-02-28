@@ -1,8 +1,9 @@
 name: Deployment
-"on":
-    push:
-      branches:
-        - main
+
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -21,7 +22,7 @@ jobs:
           source: "docker-compose.yml,html"
           target: "/home/ubuntu/nginx-deploy"
 
-      - name: Deploy with Docker Compose
+      - name: Deploy with Docker Compose (Handling Port Conflicts)
         uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.HOST_SERVER }}
@@ -30,5 +31,22 @@ jobs:
           port: 22
           script: |
             cd /home/ubuntu/nginx-deploy
-            docker compose down
-            docker compose up -d
+            
+            # Modify docker-compose.yml to use port 8080 instead of 80
+            sed -i 's/- "80:80"/- "8080:80"/' docker-compose.yml
+            
+            # Check if docker-compose is installed
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose not found, installing..."
+              sudo apt-get update
+              sudo apt-get install -y docker-compose
+            fi
+            
+            # Stop and remove existing containers
+            docker-compose down
+            
+            # Start containers with the new port configuration
+            docker-compose up -d
+            
+            echo "Deployment completed successfully. Nginx is now running on port 8080."
+            echo "You can access it at http://your-server-ip:8080"
